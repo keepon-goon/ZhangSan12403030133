@@ -1,0 +1,133 @@
+﻿第二题：MongoDB原子扣减与事务验证
+学号：12403030133；A=0，C=3，Stock=8，Buy=1。
+
+T1：正常订购
+执行命令：
+load("E:/Nosql/12403030133/task2/init_T1.js")
+load("E:/Nosql/12403030133/task2/run_T1.js")
+
+实际初始化输出：
+{ scenario: 'T1', initialStock: 8, orders: 0 }
+true
+
+实际场景输出：
+{
+  scenario: 'T1',
+  initialStock: 8,
+  buy: 1,
+  attempts: 1,
+  successCount: 1,
+  failureCount: 0,
+  finalStock: 7,
+  orderCount: 1,
+  outcomeCounts: { COMMITTED: 1 },
+  errors: [],
+  rollbackVerified: true,
+  passed: true
+}
+true
+
+结果说明：正常订购成功提交，库存由8减少至7，并生成1条订单。
+截图：screenshots/T1_正常订购.png
+
+T2：库存不足
+执行命令：
+load("E:/Nosql/12403030133/task2/init_T2.js")
+load("E:/Nosql/12403030133/task2/run_T2.js")
+
+实际初始化输出：
+{ scenario: 'T2', initialStock: 0, orders: 0 }
+true
+
+实际场景输出：
+{
+  scenario: 'T2',
+  initialStock: 0,
+  buy: 1,
+  attempts: 1,
+  successCount: 0,
+  failureCount: 1,
+  finalStock: 0,
+  orderCount: 0,
+  outcomeCounts: { INSUFFICIENT_OR_MISSING: 1 },
+  errors: [],
+  rollbackVerified: true,
+  passed: true
+}
+true
+
+结果说明：初始库存Buy-1为0，条件更新未匹配，订购失败。最终库存为0，订单数量为0。
+截图：screenshots/T2_库存不足.png
+
+T3：中途异常与事务回滚
+执行命令：
+load("E:/Nosql/12403030133/task2/init_T3.js")
+load("E:/Nosql/12403030133/task2/run_T3.js")
+
+实际初始化输出：
+{ scenario: 'T3', initialStock: 8, orders: 0 }
+true
+
+实际场景输出：
+{
+  scenario: 'T3',
+  initialStock: 8,
+  buy: 1,
+  attempts: 1,
+  successCount: 0,
+  failureCount: 1,
+  finalStock: 8,
+  orderCount: 0,
+  outcomeCounts: { FORCED_ERROR: 1 },
+  errors: [
+    'ForcedOrderError: T3中途异常：订单插入前回滚'
+  ],
+  rollbackVerified: true,
+  passed: true
+}
+true
+
+结果说明：库存扣减成功后、订单插入前触发主动异常，事务执行回滚。最终库存恢复为8，订单数量为0，回滚核验通过。
+截图：screenshots/T3_异常回滚.png
+
+T4：连续购买
+执行命令：
+load("E:/Nosql/12403030133/task2/init_T4.js")
+load("E:/Nosql/12403030133/task2/run_T4.js")
+
+实际初始化输出：
+{ scenario: 'T4', initialStock: 8, orders: 0 }
+true
+
+实际场景输出：
+{
+  scenario: 'T4',
+  initialStock: 8,
+  buy: 1,
+  attempts: 9,
+  successCount: 8,
+  failureCount: 1,
+  finalStock: 0,
+  orderCount: 8,
+  outcomeCounts: { COMMITTED: 8, INSUFFICIENT_OR_MISSING: 1 },
+  errors: [],
+  rollbackVerified: true,
+  passed: true
+}
+true
+
+结果说明：连续发起floor(Stock/Buy)+1=9次订购。前8次成功提交，第9次因库存不足失败；最终库存为0，订单数量为8。
+截图：screenshots/T4_连续购买.png
+
+四个场景实际结果汇总：
+场景  初始库存  购买数量  成功次数  失败次数  最终库存  订单数量  核验
+T1    8         1         1         0         7         1         通过
+T2    0         1         0         1         0         0         通过
+T3    8         1         0         1         8         0         通过
+T4    8         1         8         1         0         8         通过
+
+结果解释：
+1. 单文档原子更新将教材编号筛选、库存条件检查和库存扣减合并执行。库存扣减与订单生成涉及两个集合，事务将两项操作作为一个整体提交或回滚，保持库存与订单一致。
+2. forceError测试在扣减成功后、订单插入前主动抛出异常。T3实际结果为最终库存8、订单数量0、rollbackVerified为true，核验了库存扣减的回滚效果。
+
+第二题T1至T4的实际结果均已记录。

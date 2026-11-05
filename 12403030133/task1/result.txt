@@ -1,0 +1,75 @@
+﻿第一题第1小题：查询课程
+筛选条件：teacher为张老师，status为OPEN。
+章节数量通过聚合表达式 $size 根据chapters数组计算。
+
+实际输出：
+[
+  {
+    title: 'NoSQL数据库',
+    courseId: 'COURSE-12403030133-01',
+    chapterCount: 2
+  }
+]
+
+截图：screenshots/01_课程查询.png
+
+第一题第2小题：局部修改CH02标题
+使用 $set 与位置操作符 $ 修改匹配章节的title字段。
+
+实际更新结果：
+{
+  acknowledged: true,
+  insertedId: null,
+  matchedCount: 1,
+  modifiedCount: 1,
+  upsertedCount: 0
+}
+
+更新后实际课程文档：
+{
+  _id: 'COURSE-12403030133-01',
+  title: 'NoSQL数据库',
+  teacher: '张老师',
+  status: 'OPEN',
+  chapters: [
+    { chapterId: 'CH01', title: 'MongoDB基础', hours: 2 },
+    { chapterId: 'CH02', title: 'Redis基础与应用-33', hours: 2 }
+  ]
+}
+
+截图：screenshots/02_局部更新.png
+
+第一题第3小题：连续两次新增CH03
+截图记录两次相同的条件更新命令。筛选条件为课程编号以及chapters.chapterId不等于CH03，更新操作使用 $push。
+新增章节：chapterId为CH03，title为Redis高级操作，hours为2。
+
+截图末尾实际显示的第二次更新结果：
+{
+  acknowledged: true,
+  insertedId: null,
+  matchedCount: 0,
+  modifiedCount: 0,
+  upsertedCount: 0
+}
+
+截图：screenshots/03_两次新增.png
+最终章节数量将在第4小题记录。
+
+第一题第4小题：最终核验
+实际输出：
+{
+  chapter2Title: 'Redis基础与应用-33',
+  chapter3Count: 1,
+  totalChapters: 3,
+  teacher: '张老师',
+  status: 'OPEN',
+  teacherPreserved: true,
+  statusPreserved: true
+}
+
+核验结论：CH02标题符合S=33的要求；两次新增后CH03数量为1；最终章节总数为3；teacher和status保持原值。
+
+局部更新说明：$set直接修改CH02的title字段；带章节编号条件的 $push 在CH03尚未存在时新增章节。两项操作保留课程其他字段和已有章节。完整文档替换需要重新提供课程全部字段，增加遗漏字段和覆盖其他修改的可能性。
+
+截图：screenshots/04_最终核验.png
+第一题四个小题的实际结果均已记录。

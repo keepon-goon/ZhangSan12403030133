@@ -1,0 +1,11 @@
+﻿命令：
+load("E:/Nosql/12403030133/task1/init.js")
+
+实际输出：
+{
+  database: 'exam_12403030133',
+  initializedCourses: 3
+}
+true
+
+截图：screenshots/00_初始化.png

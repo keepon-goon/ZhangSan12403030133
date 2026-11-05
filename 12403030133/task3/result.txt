@@ -1,0 +1,107 @@
+﻿第三题：Redis学习信息与排行榜
+学号：12403030133；键前缀：exam:12403030133:
+Python解释器：D:\anaconda\python.exe
+
+第1小题：学生信息维护
+操作：创建Hash，将status从learning修改为completed，分别读取name和status，再读取完整Hash。
+实际命令返回：DEL为0；创建Hash的HSET为5；修改status的HSET为0。
+
+实际查询输出：
+{
+  "name": "张三",
+  "status": "completed",
+  "hash": {
+    "studentId": "12403030133",
+    "name": "张三",
+    "className": "大数据管理与应用一班",
+    "courseId": "COURSE-12403030133-01",
+    "status": "completed"
+  }
+}
+
+结果说明：status修改为completed，其余四个字段保留原值。修改已有字段时HSET返回0，表示没有新增字段。
+截图：screenshots/01_学生信息Hash.png
+
+第2小题：已完成章节记录
+键：exam:12403030133:completed
+实际SADD返回值依次为1、1、0、1。
+实际每次提交后的数量：
+CH01：1
+CH02：2
+重复CH02：2
+CH03：3
+
+实际最终核验输出：
+{
+  "chapters": ["CH01", "CH02", "CH03"],
+  "CH02Completed": true,
+  "CH04Completed": false,
+  "duplicateSubmissionKeptCount": true
+}
+
+结果说明：最终包含CH01、CH02、CH03。CH02已完成，CH04未完成；重复提交CH02后数量保持为2。
+截图：screenshots/02_已完成章节Set.png
+
+第3小题：成绩排行榜
+键：exam:12403030133:rank
+实际DEL返回0，ZADD返回5，ZINCRBY返回93.0。
+
+实际加分前前三名：
+1. demo:02，90.0分
+2. demo:01，85.0分
+3. demo:04，80.0分
+
+实际加分后前三名：
+1. Student:12403030133，93.0分
+2. demo:02，90.0分
+3. demo:01，85.0分
+
+实际本人查询结果：
+{
+  "studentScore": 93.0,
+  "studentRank": "第1名"
+}
+
+结果说明：本人初始分数70+C=73，增加20分后为93分。名次使用降序位置ZREVRANK加1计算。
+截图：screenshots/03_成绩排行榜.png
+
+第4小题：会话生命周期
+键：exam:12403030133:session
+操作：SET设置会话标识并指定ex=5；time.sleep(6)等待6秒后查询存在状态与TTL。
+实际SET返回True。
+
+实际创建后输出：
+{
+  "value": "session-12403030133",
+  "ttlSeconds": 5,
+  "typeBeforeExpiry": "string"
+}
+
+实际等待后输出：
+{
+  "existsAfterWait": false,
+  "ttlAfterWait": -2,
+  "passed": true
+}
+
+结果说明：会话创建时有效期为5秒，等待6秒后键已过期。TTL返回-2，过期核验通过。会话键类型在过期前检查为string。
+截图：screenshots/04_会话生命周期.png
+
+第5小题：数据类型核验与说明
+实际输出：
+{
+  "studentHash": "hash",
+  "completedSet": "set",
+  "rankSortedSet": "zset",
+  "sessionStringBeforeExpiry": "string"
+}
+
+实际类型说明输出：
+Hash：按字段保存和修改学生信息。
+Set：保存不重复的已完成章节，并支持成员判断。
+Sorted Set：按成绩排序，支持查询分数和名次。
+String：保存单个会话标识，并设置过期时间。
+
+会话类型采用第4小题在过期前实际查询并保存的值。
+截图：screenshots/05_数据类型核验.png
+第三题五个小题的实际结果均已记录。

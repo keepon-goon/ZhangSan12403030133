@@ -1,0 +1,41 @@
+﻿第四题：Redis Pipeline与性能比较
+学号：12403030133；S=33，C=3，N=1333，Q=100。
+执行命令：
+& "D:\anaconda\python.exe" "E:\Nosql\12403030133\task4\task4.py"
+
+实际输出：
+{
+  "N": 1333,
+  "Q": 100,
+  "commandCount": 1333,
+  "pipelineBatchCount": 14,
+  "expectedBatchCount": 14,
+  "lastBatchCount": 33,
+  "expectedLastBatchCount": 33,
+  "batchVerificationPassed": true,
+  "sequentialElapsedMs": 278.896,
+  "pipelineElapsedMs": 25.404,
+  "sequentialVerification": {
+    "keyCount": 1333,
+    "keySetComplete": true,
+    "valuesChecked": 1333,
+    "incorrectValueKeys": [],
+    "passed": true
+  },
+  "pipelineVerification": {
+    "keyCount": 1333,
+    "keySetComplete": true,
+    "valuesChecked": 1333,
+    "incorrectValueKeys": [],
+    "passed": true
+  },
+  "comparison": "普通Pipeline实测更快。",
+  "explanation": "批量发送减少了客户端与Redis节点之间的往返次数。",
+  "passed": true
+}
+
+结果说明：本次测量中，逐条写入耗时278.896 ms，普通Pipeline耗时25.404 ms。Pipeline分14批发送，最后一批33条。两种方案均完整写入1333个键，各键值核验通过。
+耗时包括命令构造、发送和接收回复；清理数据和读取核验在计时区间之外执行。
+若两种方式差异较小或Pipeline较慢，可能原因包括本机往返延迟较低、批次构造开销、集群分发开销以及运行时负载。
+
+截图：screenshots/01_Pipeline性能比较.png
